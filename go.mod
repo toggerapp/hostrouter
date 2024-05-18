@@ -1,4 +1,4 @@
-module github.com/go-chi/hostrouter
+module github.com/toggerapp/hostrouter
 
 go 1.16
 
