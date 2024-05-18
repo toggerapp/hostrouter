@@ -1,6 +1,7 @@
 package hostrouter
 
 import (
+	"net"
 	"net/http"
 	"strings"
 
@@ -29,6 +30,7 @@ func (hr Routes) Unmap(host string) {
 
 func (hr Routes) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host := requestHost(r)
+	host = stripHostPort(host)
 	if router, ok := hr[strings.ToLower(host)]; ok {
 		router.ServeHTTP(w, r)
 		return
@@ -68,6 +70,7 @@ func requestHost(r *http.Request) (host string) {
 
 	// if all else fails fall back to request host
 	host = r.Host
+
 	return
 }
 
@@ -101,4 +104,17 @@ func getWildcardHost(host string) string {
 		return strings.Join(wildcard, ".")
 	}
 	return strings.Join(parts, ".")
+}
+
+// stripHostPort returns h without any trailing ":<port>".
+func stripHostPort(h string) string {
+	// If no port on host, return unchanged
+	if !strings.Contains(h, ":") {
+		return h
+	}
+	host, _, err := net.SplitHostPort(h)
+	if err != nil {
+		return h // on error, return unchanged
+	}
+	return host
 }
